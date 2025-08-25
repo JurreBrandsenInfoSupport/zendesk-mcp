@@ -138,11 +138,15 @@ export const ticketsTools = [
   },
   {
     name: "update_ticket",
-    description: "Update an existing ticket",
+    description:
+      "Update an existing ticket. All comments added are internal (non-public).",
     schema: {
       id: z.number().describe("Ticket ID to update"),
       subject: z.string().optional().describe("Updated ticket subject"),
-      comment: z.string().optional().describe("New comment to add"),
+      comment: z
+        .string()
+        .optional()
+        .describe("Internal (non-public) comment to add"),
       priority: z
         .enum(["urgent", "high", "normal", "low"])
         .optional()
@@ -180,7 +184,12 @@ export const ticketsTools = [
         const ticketData = {};
 
         if (subject !== undefined) ticketData.subject = subject;
-        if (comment !== undefined) ticketData.comment = { body: comment };
+        if (comment !== undefined) {
+          ticketData.comment = {
+            body: comment,
+            public: false, // Always internal
+          };
+        }
         if (priority !== undefined) ticketData.priority = priority;
         if (status !== undefined) ticketData.status = status;
         if (assignee_id !== undefined) ticketData.assignee_id = assignee_id;
@@ -189,6 +198,7 @@ export const ticketsTools = [
         if (tags !== undefined) ticketData.tags = tags;
 
         const result = await zendeskClient.updateTicket(id, ticketData);
+
         return {
           content: [
             {
